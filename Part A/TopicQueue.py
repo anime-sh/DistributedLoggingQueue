@@ -6,6 +6,7 @@ class TopicQueue(object):
 	def __init__(self):
 		self.queue = queue.Queue()
 		self.lock = threading.Lock()
+		self._size = 0
 
 		# TODO: Should we limit number of active threads accessing a single topic??
 		# self.max_threads = max_threads
@@ -16,6 +17,7 @@ class TopicQueue(object):
 		self.lock.acquire()
 		try:
 			self.queue.put((log_message,message_metadata))
+			self._size += 1
 		finally:
 			self.lock.release()
 
@@ -25,14 +27,20 @@ class TopicQueue(object):
 		# if empty the thread will wait UNTIL it has something to return
 		self.lock.acquire()
 		try:
-			if (not self.queue.empty()):
+			if (self._size != 0):
 				log_message, message_metadata = self.queue.get()
+				self._size -= 1
 			else:
 				log_message=""
 				message_metadata="no message in queue"
 		finally:
 			self.lock.release()
 			return log_message, message_metadata
+
+	def size(self):
+		with self.lock:
+			return self._size
+			
 
 # Testing :
 if __name__=='__main__':
