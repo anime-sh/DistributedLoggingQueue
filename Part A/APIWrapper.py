@@ -3,37 +3,61 @@
 
 
 from flask import Flask, request
-
+from DistributedQueue import LoggingQueue
+import uuid
 app = Flask(__name__)
-
+loggingQueue = LoggingQueue()
 
 
 @app.route('/')
-
 def hello_world():
-    return "<h1> Hello WOrld wow</h1>"
+	return "<h1> Hello WOrld wow</h1>"
 
 @app.route("/topics", methods=["POST", "GET"])
 def topics():
-    print(request.method)
-    if request.method == "POST":
-        dict = request.get_json()
-        print(dict['topic_name'])
-        # TODO : Interact with logging queue and return valid response 
-        
-        return "test", 205
-    
-    else:
+	print(request.method)
+	# print(loggingQueue.__dict__)
+	# return "hi"
+	if request.method == "POST":
+		dict = request.get_json()
+		topic = dict['topic_name']
+		response = {}
+		status = loggingQueue.create_topic(topic)
+		if status == 1:
+			response["status"] = "Success"
+			response["message"] = f"Topic {topic} created successfully!"
+		else:
+			response["status"] = "Failure"
+			response["message"] = f"Topic {topic} already exists!"
+		
+		return response
+		# print(dict['topic_name'])
+		# TODO : Interact with logging queue and return valid response 
+		
+		# return "test", 205
+	
+	else:
 		# TODO : Return topic list
-        return {"topics" : ["banana", "guava", "apple"]}
+		return {"topics" : loggingQueue.list_topics()}
 
 @app.route("/consumer/register", methods=["POST"])
 def register_consumer():
 	dict = request.get_json()
 	print(dict['topic'])
+	topic = dict['topic']
+	
+	status = loggingQueue.register_consumer(topic)
+	response=  {}
+	if status == -1:
+		response["status"] = "Failure"
+		response["message"] = f"Topic {topic} doesn't exist!"
+	else:
+		response["status"] = "Success"
+		response["consumer_id"] = status
+	return response
 	# if topic exists send consumer id
-	return {"status" : "success",
-			"consumer_id" : 1234}
+	# return {"status" : "success",
+	#         "consumer_id" : 1234}
 	# else return error
 	# return {"status"  : "failure",
 	# 		  "message" : "topic not found"}
@@ -42,8 +66,13 @@ def register_consumer():
 def register_producer():
 	dict = request.get_json()
 	print(dict['topic'])
-	# if topic exists send consumer id
-	return {"status" : "success"}
+	topic = dict['topic']
+	
+	status = loggingQueue.register_producer(topic)
+	response=  {}
+	response["status"] = "Success"
+	response["producer_id"] = status
+	return response
 	# else return error
 	# return {"status"  : "failure",
 	# 		  "message" : "topic not found"}
@@ -52,19 +81,48 @@ def register_producer():
 @app.route("/producer/produce", methods=["POST"])
 def enque():
 	dict = request.get_json()
-	print(dict['topic'])
-	# if topic exists send consumer id
-	return {"status" : "success"}
+	topic = (dict['topic'])
+	producer_id = uuid.UUID(dict['producer_id'])
+	message = dict['message']
+
+	
+	status = loggingQueue.enqueue(topic_name=topic, producer_id=producer_id, message=message)
+	response = {}
+
+	if status == 1:
+		response["status"] = "Success"
+	else:
+		response["status"] = "Failure"
+		if status == -1:
+			response["message"] = f"Topic {topic} does not exist."
+		elif status == -2:
+			response["message"] = f"Producer {producer_id} is not registered for topic {topic}."
+
+	return response
 	# else return error
 	# return {"status"  : "failure",
 	# 		  "message" : "topic not found"}
 
-@app.route("/consumer/consume", methods=["POST"])
-def deque():
+@app.route("/consumer/consume", methods=["GET"])
+def dequeue():
 	dict = request.get_json()
-	print(dict['topic'])
+	topic = (dict['topic'])
+	consumer_id = uuid.UUID(dict['consumer_id'])
 	# if topic exists send consumer id
-	return {"status" : "success"}
+	status = loggingQueue.dequeue(topic_name=topic, consumer_id=consumer_id)
+	response = {}
+
+	if isinstance(status, str) :
+		response["status"] = "Success"
+		response["message"] = status
+	else:
+		response["status"] = "Failure"
+		if status == -1:
+			response["message"] = f"Topic {topic} does not exist."
+		elif status == -2:
+			response["message"] = f"Consumer {consumer_id} is not registered for topic {topic}."
+
+	return response
 	# else return error
 	# return {"status"  : "failure",
 	# 		  "message" : "topic not found"}
@@ -72,12 +130,29 @@ def deque():
 @app.route("/size", methods=["GET"])
 def size():
 	dict = request.get_json()
-	print(dict['topic'])
+	topic = (dict['topic'])
+	consumer_id = uuid.UUID(dict['consumer_id'])
+
+	status = loggingQueue.size(topic_name= topic, consumer_id= consumer_id)
+	response = {}
+
+	if status >=0 :
+		response["status"] = "Success"
+		response["size"] = status
+	else:
+		response["status"] = "Failure"
+		if status == -1:
+			response["message"] = f"Topic {topic} does not exist."
+		elif status == -2:
+			response["message"] = f"Consumer {consumer_id} is not registered for topic {topic}."
+
+	return response
 	# if topic exists send consumer id
-	return {"status" : "success"}
+	# return {"status" : "success"}
 	# else return error
 	# return {"status"  : "failure",
 	# 		  "message" : "topic not found"}
 
 if __name__ == '__main__':
-    app.run(debug=True)
+	# global loggingQueue
+	app.run(debug=True)
