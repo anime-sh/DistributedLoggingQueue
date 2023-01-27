@@ -41,6 +41,7 @@ class LoggingQueue:
         
 
     def register_consumer(self, topic_name: str) -> int:
+        # offset --> 0
         if topic_name not in self.topics:
             print(f"Topic {topic_name} does not exist.")
             return -1
@@ -48,6 +49,8 @@ class LoggingQueue:
         consumer_id = uuid.uuid4()
         with self.consumer_lock:   
             self.consumers_for_topic[topic_name].add(consumer_id)
+            # self.consumers_for_topic[topic_name].offsets[consumer_id] = 0
+            self.topics[topic_name].offsets[consumer_id] = 0
             print(f"Consumer {consumer_id} registered for topic {topic_name}.")
             return consumer_id
 
@@ -92,9 +95,13 @@ class LoggingQueue:
                 return -2
         
         with self.topics_dict_lock:
-            message, metadata = self.topics[topic_name].retrieve_log()
-            print(f"Consumer {consumer_id} dequeued message '{message}' ({metadata}) from topic {topic_name}.")
-            return message
+            message, metadata = self.topics[topic_name].retrieve_log(consumer_id)
+            if "No Message" in metadata:
+                print(f"No message in queue!!!")
+                return -3
+            else:
+                print(f"Consumer {consumer_id} dequeued message '{message}' ({metadata}) from topic {topic_name}.")
+                return message
 
     def size(self, topic_name: str, consumer_id: int) -> int:
         with self.topics_dict_lock:
@@ -107,5 +114,5 @@ class LoggingQueue:
                 print(f"Consumer {consumer_id} is not registered.")
                 return -2
         with self.topics_dict_lock:
-            return self.topics[topic_name].size()
+            return self.topics[topic_name].size(consumer_id)
         

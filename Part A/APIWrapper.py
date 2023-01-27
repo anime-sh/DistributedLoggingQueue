@@ -121,6 +121,8 @@ def dequeue():
 			response["message"] = f"Topic {topic} does not exist."
 		elif status == -2:
 			response["message"] = f"Consumer {consumer_id} is not registered for topic {topic}."
+		elif status == -3:
+			response["message"] = f"No more messages for {consumer_id}"
 
 	return response
 	# else return error

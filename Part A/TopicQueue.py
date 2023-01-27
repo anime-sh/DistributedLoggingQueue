@@ -4,9 +4,10 @@ import threading
 
 class TopicQueue(object):
 	def __init__(self):
-		self.queue = queue.Queue()
+		# self.queue = queue.Queue()
+		self.messages = []
+		self.offsets = dict()
 		self.lock = threading.Lock()
-		self._size = 0
 
 		# TODO: Should we limit number of active threads accessing a single topic??
 		# self.max_threads = max_threads
@@ -16,30 +17,31 @@ class TopicQueue(object):
 		# Acquire the lock to add a log message to the queue
 		self.lock.acquire()
 		try:
-			self.queue.put((log_message,message_metadata))
-			self._size += 1
+			# self.queue.put((log_message,message_metadata))
+			self.messages.append((log_message, message_metadata))
 		finally:
 			self.lock.release()
 
 
-	def retrieve_log(self):
+	def retrieve_log(self, consumer_id):
 		# Acquire the lock to retrieve a log message from the queue
 		# if empty the thread will wait UNTIL it has something to return
 		self.lock.acquire()
 		try:
-			if (self._size != 0):
-				log_message, message_metadata = self.queue.get()
-				self._size -= 1
+			if len(self.messages) > self.offsets[consumer_id]:
+				# log_message, message_metadata = self.queue.get()
+				log_message, message_metadata = self.messages[self.offsets[consumer_id]]
+				self.offsets[consumer_id] += 1
 			else:
 				log_message=""
-				message_metadata="no message in queue"
+				message_metadata="No Message"
 		finally:
 			self.lock.release()
 			return log_message, message_metadata
 
-	def size(self):
+	def size(self, consumer_id):
 		with self.lock:
-			return self._size
+			return len(self.messages) - self.offsets[consumer_id]
 			
 
 # Testing :
