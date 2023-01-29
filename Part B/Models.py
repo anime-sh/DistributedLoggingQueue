@@ -62,3 +62,33 @@ class TopicMessage(db.Model):
     def __repr__(self):
         return f"{self.topic_name} {self.producer_id} {self.message}"
 
+class TopicOffsets(db.Model):
+    consumer_id = db.Column(db.Integer, primary_key=True)
+    topic_name = db.Column(db.String(), db.ForeignKey('TopicName.topic_name'))
+    offset = db.Column(db.Integer)
+
+    def __init__(self, consumer_id, topic_name):
+        self.consumer_id = consumer_id
+        self.topic_name = topic_name
+        self.offset = 0
+
+    def getOffset(consumer_id):
+        return TopicOffsets.query.filter_by(consumer_id=consumer_id).first().offset
+
+    def IncrementOffset(consumer_id):
+        offset = TopicOffsets.getOffset(consumer_id)
+        TopicOffsets.query.filter_by(consumer_id=consumer_id).update(
+            {TopicOffsets.offset: offset + 1})
+        db.session.commit()
+
+    def getTopicName(consumer_id):
+        return TopicOffsets.query.filter_by(consumer_id=consumer_id).first().topic_name
+
+    def registerConsumer(consumer_id, topic_name):
+        if not TopicName.CheckTopic(topic_name):
+            raise Exception("Topic does not exist")
+        consumer = TopicOffsets(consumer_id, topic_name)
+        db.session.add(consumer)
+        db.session.commit()
+
+
