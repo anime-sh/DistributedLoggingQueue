@@ -1,6 +1,6 @@
 import requests
+# When broker is down: block hoke baith jao
 
-# TODO: When broker is down: block hoke baith jao
 class MyConsumer:
 	def __init__(self, topics, broker):
 		self.topics = topics
@@ -37,6 +37,44 @@ class MyConsumer:
 			print(f"Failed, {response['message']}")
 		
 		return response
+
+	def get_topics(self):
+		topics_url = self.base_url +  "/topics"
+		data = {"topic" : topic_name}
+
+		try:
+			r = requests.get(topics_url, json = data)
+			r.raise_for_status()
+		except requests.exceptions.HTTPError as errh:
+			print ("Http Error:",errh)
+		except requests.exceptions.ConnectionError as errc:
+			print ("Error Connecting:",errc)
+		response = r.json()
+		if response["status"] == "Success":
+			print("Active Topics : ")
+			for topic_name in response["topics"]:
+				print(topic_name)
+		return
+	
+	def subscribe_to_topic(self, topic_name):
+		if topic_name in self.topics_to_consumer_ids.keys():
+			print(f"Consumer already registered to {topic_name}")
+			return
+		register_url = self.base_url +  "/consumer/register"
+		data = {"topic" : topic_name}
+		try:
+			r = requests.post(register_url, json = data)
+			r.raise_for_status()
+		except requests.exceptions.HTTPError as errh:
+			print ("Http Error:",errh)
+		except requests.exceptions.ConnectionError as errc:
+			print ("Error Connecting:",errc)
+		response = r.json()
+		
+		if response["status"] == "Success":
+			consumer_id = response["consumer_id"]
+			self.topics_to_consumer_ids[topic_name] = consumer_id
+		return
 		
 if __name__ == "__main__":
 	pass

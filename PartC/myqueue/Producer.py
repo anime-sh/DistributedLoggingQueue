@@ -16,7 +16,7 @@ class MyProducer:
         
     
     def send(self, topic_name, message):
-        if topic_name in self.topics_producer_id_map.keys():
+        if topic_name not in self.topics_producer_id_map.keys():
             print(f"Please register to {topic_name}")
             return
         send_url = self.base_url + "/producer/produce"
@@ -25,6 +25,7 @@ class MyProducer:
             "producer_id": self.topics_producer_id_map[topic_name],
             "message" : message
         }
+        # TODO : add an infinite loop until success
         try:
             r = requests.post(send_url, json = data)
             r.raise_for_status()
