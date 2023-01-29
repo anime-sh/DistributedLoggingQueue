@@ -60,7 +60,7 @@ class TopicMessage(db.Model):
         return TopicMessage.query.filter_by(topic_name=topic_name).count() - offset - 1
 
     def __repr__(self):
-        return f"{self.topic_name} {self.producer_id} {self.message}"
+        return f"{self.id} {self.topic_name} {self.producer_id} {self.message}"
 
 class TopicOffsets(db.Model):
     consumer_id = db.Column(db.Integer, primary_key=True)
@@ -91,4 +91,26 @@ class TopicOffsets(db.Model):
         db.session.add(consumer)
         db.session.commit()
 
+    def __repr__(self):
+        return f"{self.consumer_id} {self.topic_name} {self.offset}"
 
+class TopicProducer(db.Model):
+    producer_id = db.Column(db.Integer, primary_key=True)
+    topic_name = db.Column(db.String())
+
+    def __init__(self, producer_id, topic_name):
+        self.producer_id = producer_id
+        self.topic_name = topic_name
+
+    def registerProducer(producer_id, topic_name):  
+        if not TopicName.CheckTopic(topic_name):
+            raise Exception("Topic does not exist")
+        producer = TopicProducer(producer_id, topic_name)
+        db.session.add(producer)
+        db.session.commit()
+
+    def checkProducer(producer_id):
+        return TopicProducer.query.filter_by(producer_id=producer_id).count() != 0
+
+    def __repr__(self):
+        return f"{self.producer_id} {self.topic_name}"
