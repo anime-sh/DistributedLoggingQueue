@@ -27,7 +27,7 @@ class TopicName(db.Model):
 
 
 class TopicMessage(db.Model):
-    __tablename = 'TopicMessage'
+    __tablename__ = 'TopicMessage'
     id = db.Column(db.Integer, primary_key=True)
     topic_name = db.Column(db.String(), db.ForeignKey('TopicName.topic_name'))
     producer_id = db.Column(db.String())
@@ -50,7 +50,7 @@ class TopicMessage(db.Model):
     def retrieveMessage(self, topic_name, offset):
         left_messages = self.getSizeforTopic(topic_name, offset)
         if (offset > left_messages):
-            raise Exception("Offset is greater than the number of messages")
+            return -1
         data = TopicMessage.query.filter_by(
             topic_name=topic_name).sort_by(id).offset(offset).first()
         return data.message
@@ -91,6 +91,9 @@ class TopicOffsets(db.Model):
         db.session.add(consumer)
         db.session.commit()
 
+    def checkConsumer(consumer_id):
+        return TopicOffsets.query.filter_by(consumer_id=consumer_id).count() != 0
+
     def __repr__(self):
         return f"{self.consumer_id} {self.topic_name} {self.offset}"
 
@@ -114,3 +117,7 @@ class TopicProducer(db.Model):
 
     def __repr__(self):
         return f"{self.producer_id} {self.topic_name}"
+
+
+def return_objects():
+    return TopicProducer(), TopicMessage(), TopicName(), TopicOffsets()
