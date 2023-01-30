@@ -11,7 +11,6 @@ from TopicQueue import TopicQueue
 
 class LoggingQueue:
     def __init__(self):
-        print("Hello")
         self.topics: Dict[str, TopicQueue] = {}  # stores the available topics and their lock
         self.consumers_for_topic: Dict[str, Set[int] ] = {}  # stores the consumer_ids for a topic
         self.producers_for_topic: Dict[str, Set[int]] = {}  # stores the producer_ids for a topic
@@ -19,7 +18,6 @@ class LoggingQueue:
         self.topics_dict_lock = threading.Lock()  # lock for topics dictionary
         self.consumer_lock = threading.Lock()  # lock for consumers dictionary
         self.producer_lock = threading.Lock()  # lock for producers dictionary
-        print("bye")
 
     def create_topic(self, topic_name: str) -> None:
         with self.topics_dict_lock:
