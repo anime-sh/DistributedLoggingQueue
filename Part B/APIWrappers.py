@@ -5,9 +5,10 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from Models import db, TopicName
 
+import json
 import uuid
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://<postgres>:<password123>@<0.0.0.0>:0/<test>"
+app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:postgrespassword@127.0.0.1:5432/flasksql"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
  
 db.init_app(app)
@@ -50,7 +51,7 @@ def topics():
 
 @app.route("/consumer/register", methods=["POST"])
 def register_consumer():
-	dict = request.get_json()
+	dict = request.get_json()	
 	print(dict['topic'])
 	topic = dict['topic']
 	
@@ -165,4 +166,6 @@ def size():
 
 if __name__ == '__main__':
 	# global loggingQueue
+	with app.app_context():
+		db.create_all() # <--- create db object.
 	app.run(debug=True)

@@ -13,15 +13,18 @@ class TopicName(db.Model):
     def __repr__(self):
         return f"{self.topic_name}"
 
-    def ListTopics(self):
-        return TopicName.query.all()
+    @staticmethod
+    def ListTopics():
+        return [topic.topic_name for topic in TopicName.query.all()]
 
-    def CreateTopic(self, topic_name):
+    @staticmethod
+    def CreateTopic(topic_name):
         topic = TopicName(topic_name)
         db.session.add(topic)
         db.session.commit()
 
-    def CheckTopic(self, topic_name):
+    @staticmethod
+    def CheckTopic(topic_name):
         topic = TopicName.query.filter_by(topic_name=topic_name).first()
         return True if topic else False
 
@@ -38,7 +41,8 @@ class TopicMessage(db.Model):
         self.producer_id = producer_id
         self.message = message
 
-    def addMessage(self, topic_name, producer_id, message):
+    @staticmethod
+    def addMessage(topic_name, producer_id, message):
         # check if topic exists
         if not TopicName.CheckTopic(topic_name):
             raise Exception("Topic does not exist")
@@ -47,23 +51,27 @@ class TopicMessage(db.Model):
         db.session.add(topic)
         db.session.commit()
 
-    def retrieveMessage(self, topic_name, offset):
-        left_messages = self.getSizeforTopic(topic_name, offset)
-        if (offset > left_messages):
+    @staticmethod
+    def retrieveMessage(topic_name, offset):
+        left_messages = TopicMessage.getSizeforTopic(topic_name, offset)
+
+        if (left_messages <= 0):
             return -1
         data = TopicMessage.query.filter_by(
-            topic_name=topic_name).sort_by(id).offset(offset).first()
+            topic_name=topic_name).order_by(TopicMessage.id).offset(offset).first()
         return data.message
 
+    @staticmethod
     def getSizeforTopic(topic_name, offset):
         # offset is 0-indexed
-        return TopicMessage.query.filter_by(topic_name=topic_name).count() - offset - 1
+        return TopicMessage.query.filter_by(topic_name=topic_name).count() - offset
 
     def __repr__(self):
         return f"{self.id} {self.topic_name} {self.producer_id} {self.message}"
 
 class TopicOffsets(db.Model):
-    consumer_id = db.Column(db.Integer, primary_key=True)
+    __tablename__ = 'TopicOffsets'
+    consumer_id = db.Column(db.String(), primary_key=True)
     topic_name = db.Column(db.String(), db.ForeignKey('TopicName.topic_name'))
     offset = db.Column(db.Integer)
 
@@ -72,18 +80,22 @@ class TopicOffsets(db.Model):
         self.topic_name = topic_name
         self.offset = 0
 
+    @staticmethod
     def getOffset(consumer_id):
         return TopicOffsets.query.filter_by(consumer_id=consumer_id).first().offset
 
+    @staticmethod
     def IncrementOffset(consumer_id):
         offset = TopicOffsets.getOffset(consumer_id)
         TopicOffsets.query.filter_by(consumer_id=consumer_id).update(
             {TopicOffsets.offset: offset + 1})
         db.session.commit()
 
+    @staticmethod
     def getTopicName(consumer_id):
         return TopicOffsets.query.filter_by(consumer_id=consumer_id).first().topic_name
 
+    @staticmethod
     def registerConsumer(consumer_id, topic_name):
         if not TopicName.CheckTopic(topic_name):
             raise Exception("Topic does not exist")
@@ -91,6 +103,7 @@ class TopicOffsets(db.Model):
         db.session.add(consumer)
         db.session.commit()
 
+    @staticmethod
     def checkConsumer(consumer_id):
         return TopicOffsets.query.filter_by(consumer_id=consumer_id).count() != 0
 
@@ -98,13 +111,15 @@ class TopicOffsets(db.Model):
         return f"{self.consumer_id} {self.topic_name} {self.offset}"
 
 class TopicProducer(db.Model):
-    producer_id = db.Column(db.Integer, primary_key=True)
+    __tablename__ = 'TopicProducer'
+    producer_id = db.Column(db.String(), primary_key=True)
     topic_name = db.Column(db.String())
 
     def __init__(self, producer_id, topic_name):
         self.producer_id = producer_id
         self.topic_name = topic_name
 
+    @staticmethod
     def registerProducer(producer_id, topic_name):  
         if not TopicName.CheckTopic(topic_name):
             raise Exception("Topic does not exist")
@@ -112,6 +127,7 @@ class TopicProducer(db.Model):
         db.session.add(producer)
         db.session.commit()
 
+    @staticmethod
     def checkProducer(producer_id):
         return TopicProducer.query.filter_by(producer_id=producer_id).count() != 0
 
@@ -120,4 +136,4 @@ class TopicProducer(db.Model):
 
 
 def return_objects():
-    return TopicProducer(), TopicMessage(), TopicName(), TopicOffsets()
+    return TopicProducer, TopicMessage, TopicName, TopicOffsets
