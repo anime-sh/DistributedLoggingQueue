@@ -1,0 +1,1 @@
+from myqueue import MyProducer
