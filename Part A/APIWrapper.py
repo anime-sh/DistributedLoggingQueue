@@ -4,15 +4,10 @@
 
 from flask import Flask, request
 from DistributedQueue import LoggingQueue
-from flask_sqlalchemy import SQLAlchemy
-
 import uuid
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///DSQueue.db'
-db = SQLAlchemy(app)
 loggingQueue = LoggingQueue()
 
-# TODO : Add database schemas
 
 @app.route('/')
 def hello_world():
