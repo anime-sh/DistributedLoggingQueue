@@ -10,9 +10,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 class LoggingQueue:
     def __init__(self):
-        print("Hello")
         self.ProducerDB, self.MessageDB, self.NameDB, self.OffsetsDB = Models.return_objects()
-        print("Bye")
 
     def create_topic(self, topic_name: str) -> None:
         if not self.NameDB.CheckTopic(topic_name=topic_name):
