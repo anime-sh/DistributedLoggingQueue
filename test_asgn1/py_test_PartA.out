@@ -1,0 +1,84 @@
+Testing the endpoint create Topic
+request = {'topic_name': 'tp_1'}
+Response
+{'message': 'Topic tp_1 created successfully!', 'status': 'Success'}
+
+Testing the endpoint create Topic (topic already exists case)
+request = {'topic_name': 'tp_1'}
+Response
+{'message': 'Topic tp_1 already exists!', 'status': 'Failure'}
+
+Testing the endpoint get Topics
+Response
+{'topics': ['tp_1']}
+
+Testing the endpoint register consumer
+request = {'topic': 'tp_1'}
+Response
+{'consumer_id': '36d9e1b2-5aa0-47b8-a241-bc4463d565c0', 'status': 'Success'}
+
+Testing the endpoint register consumer (case with invalid topic name)
+request = {'topic': 'tp_2'}
+Response
+{'message': "Topic tp_2 doesn't exist!", 'status': 'Failure'}
+
+Testing the endpoint register producer
+request = {'topic': 'tp_1'}
+Response
+{'producer_id': 'cb2f94be-8118-4d19-b686-a43da36bf6d1', 'status': 'Success'}
+
+Testing the endpoint register producer (missing topic name)
+request = {'topic': 'tp_2'}
+Response
+{'producer_id': '12257719-3d66-48a1-be18-4ad6b931699e', 'status': 'Success'}
+
+calling the endpoint get Topics
+Response
+{'topics': ['tp_1', 'tp_2']}
+Note : Topic tp_2 was created while registering the producer.
+
+Pushing 3 messages on Topic tp_1
+request = {'topic': 'tp_1', 'producer_id': 'cb2f94be-8118-4d19-b686-a43da36bf6d1', 'message': 'LOG MESSAGE 1'}
+Response
+{'status': 'Success'}
+request = {'topic': 'tp_1', 'producer_id': 'cb2f94be-8118-4d19-b686-a43da36bf6d1', 'message': 'LOG MESSAGE 2'}
+Response
+{'status': 'Success'}
+request = {'topic': 'tp_1', 'producer_id': 'cb2f94be-8118-4d19-b686-a43da36bf6d1', 'message': 'LOG MESSAGE 3'}
+Response
+{'status': 'Success'}
+
+Consuming messages using the consumer 36d9e1b2-5aa0-47b8-a241-bc4463d565c0 and reporting size for 4 times
+request = {'topic': 'tp_1', 'consumer_id': '36d9e1b2-5aa0-47b8-a241-bc4463d565c0'}
+
+Size of tp_1 for given consumer
+Response
+{'size': 3, 'status': 'Success'}
+
+Consuming messages
+Response
+{'message': 'LOG MESSAGE 1', 'status': 'Success'}
+
+Size of tp_1 for given consumer
+Response
+{'size': 2, 'status': 'Success'}
+
+Consuming messages
+Response
+{'message': 'LOG MESSAGE 2', 'status': 'Success'}
+
+Size of tp_1 for given consumer
+Response
+{'size': 1, 'status': 'Success'}
+
+Consuming messages
+Response
+{'message': 'LOG MESSAGE 3', 'status': 'Success'}
+
+Size of tp_1 for given consumer
+Response
+{'size': 0, 'status': 'Success'}
+
+Consuming messages
+Response
+{'message': 'No more messages for 36d9e1b2-5aa0-47b8-a241-bc4463d565c0', 'status': 'Failure'}
