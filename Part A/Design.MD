@@ -47,9 +47,24 @@ In this part, we had to add persistence to the program, (i.e) recovery insurance
 
 ### Implementation
 
-When an additional storage layer (database) is added into the program, our initial queue design needed some modifications. First of all, the topic queues which were initially stored seperately for each topic in-memory were merged into one table inside the database as it was more efficient than making a seperate table for each topic queue. As the database has it's own access commands, the need of a high-level package to access the queue contents also becomes redundant, and hence we removed the Distributed Queue package from our implementation. Also, as we are already using a database to store the messages and the other relevant metadata and user data, it eliminates the need of locks to ensure synchronization and hence the instances of lock usages were removed too. 
+When an additional storage layer (database) is added into the program, our initial queue design needed some modifications. First of all, the topic queues which were initially stored seperately for each topic in-memory were merged into one table inside the database as it was more efficient than making a seperate table for each topic queue, and hence no topic queue implementation is necessary as such. Also, as we are already using a database to store the messages and the other relevant metadata and user data, it eliminates the need of locks to ensure synchronization and hence the instances of lock usages were removed too. 
 
 For implementing the database, a PostgreSQL database was set up and an Object Relational Manager (ORM) was used to create a bridge between our already existing Objected Orient Program which consists of class objects and these are stored in the Relational Database using the ORM, which is SQLAlchemy in our case. SQLAlchemy provides persistence patterns designed for efficient and high-performing database access and hence was our first choice as an ORM. In our case, we used the ORM to create additional classes (created in Models.py) to get, add and update specific data items (such as offsets, topic size, etc.) and these classes were used in our main program for accessing the database. 
+
+The details of the four classes are explained below :
+#### For each topic 
+
+##### Topic_Names
+	One Field -> topic_name {Supports CreateTopic, ListTopic}
+##### TopicMessages
+	Three fields -> message_id, topic_name, producer_id, message {supports enqueue, dequeue, size}
+
+##### TopicOffsets
+	Three fields -> consumer_id, topic_name, offset {supports RegisterConsumer, used in deqeue, size}
+
+##### TopicProducer
+	Two fields -> topic_name, producer_id {used for checking if producer exists for given topic}
+
 
 Firstly, we imported the database access classes in our main program. Next, all the instances of access to data items in our original program were modified by using the newly created methods of our database access classes. New consumers and producers are also added via methods of these four new classes. The API Wrapper was modified to incorporate the usage of SQLAlchemy.
 
@@ -59,15 +74,4 @@ Firstly, we imported the database access classes in our main program. Next, all 
 
 ### Testing 
 
-## For each topic 
 
-### Topic_Names
-	One Field -> topic_name {Supports CreateTopic, ListTopic}
-### TopicMessages
-	Three fields -> message_id, topic_name, producer_id, message {supports enqueue, dequeue, size}
-
-### TopicOffsets
-	Three fields -> consumer_id, topic_name, offset {supports RegisterConsumer, used in deqeue, size}
-
-### TopicProducer
-	Two fields -> topic_name, producer_id {used for checking if producer exists for given topic}
