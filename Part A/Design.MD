@@ -107,7 +107,9 @@ The scripts for the Producer and Consumer libraries were written in python. Beca
 
 ### Challenges
 
-The only major challenge that was faced while implementing this part was familiarising ourselves and finding the equivalent python functions for the flask method calls so that we could use them appropriately in our SDK. 
+One of the major challenges that was faced while implementing this part was familiarising ourselves and finding the equivalent python functions for the flask method calls so that we could use them appropriately in our SDK. 
+
+Another challenge we faced was the SDK always has non-blocking calls so the retry routine of the producer has to be written from the user side. If addding a message to the queue fails, then the onus of retrying belongs to the user of the SDK. As we didn't want to make sdk blocking.
 
 ### Testing and Hyperparameters
 The Hyperparameters and tests considered for this part were similar to that of part A. 
