@@ -6,6 +6,6 @@ base_url = f"http://{HOST}:{PORT}"
 c3 = MyConsumer(topics=["T-1", "T-3"], broker=base_url)
 
 while True:
-    c3.get_next("T-1")
-    c3.get_next("T-3")
+    print(c3.get_next("T-1"))
+    print(c3.get_next("T-3"))
     

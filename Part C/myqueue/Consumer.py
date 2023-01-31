@@ -16,13 +16,13 @@ class MyConsumer:
 			print(f"Please register to {topic_name}")
 			return
 
-		send_url = self.base_url + "/consumer/dequeue"
+		send_url = self.base_url + "/consumer/consume"
 		data = {
 			"topic" : topic_name,
 			"consumer_id": self.topics_to_consumer_ids[topic_name],
 		}
 		try:
-			r = requests.post(send_url, json = data)
+			r = requests.get(send_url, json = data)
 			r.raise_for_status()
 		except requests.exceptions.HTTPError as errh:
 			print ("Http Error:",errh)
@@ -32,7 +32,7 @@ class MyConsumer:
 		response = r.json()
 
 		if response["status"] == "Success":
-			print("Sent successfully")
+			print("Received successfully")
 		else:
 			print(f"Failed, {response['message']}")
 		
