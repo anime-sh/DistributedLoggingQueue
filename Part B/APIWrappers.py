@@ -1,15 +1,19 @@
-# TODO: Implement Flask Interface 
-
-
-
+# TODO: Implement Flask Interface \
 from flask import Flask, request
 from DistributedQueue import LoggingQueue
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
+from Models import db, TopicName
 
+import json
 import uuid
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///DSQueue.db'
-db = SQLAlchemy(app)
+app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:postgrespassword@127.0.0.1:5432/flasksql"
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+ 
+db.init_app(app)
+migrate = Migrate(app, db)
+
 loggingQueue = LoggingQueue()
 
 # TODO : Add database schemas
@@ -47,7 +51,7 @@ def topics():
 
 @app.route("/consumer/register", methods=["POST"])
 def register_consumer():
-	dict = request.get_json()
+	dict = request.get_json()	
 	print(dict['topic'])
 	topic = dict['topic']
 	
@@ -162,4 +166,6 @@ def size():
 
 if __name__ == '__main__':
 	# global loggingQueue
+	with app.app_context():
+		db.create_all() # <--- create db object.
 	app.run(debug=True)

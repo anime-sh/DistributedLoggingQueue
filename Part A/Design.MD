@@ -33,7 +33,7 @@ Adding Persistence
 ## For each topic 
 
 ### Topic_Names
-    One Field -> topic_name {Supports CreateTopic, ListTopic}
+	One Field -> topic_name {Supports CreateTopic, ListTopic}
 ### TopicMessages
 	Three fields -> message_id, topic_name, producer_id, message {supports enqueue, dequeue, size}
 
