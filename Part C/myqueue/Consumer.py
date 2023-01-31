@@ -4,8 +4,8 @@ import requests
 class MyConsumer:
 	def __init__(self, topics, broker):
 		self.topics = topics
-		self.url = broker
-		self.topics_to_consumer_ids = dict{}
+		self.base_url = broker
+		self.topics_to_consumer_ids = {}
 
 		for topic_name in topics:
 			self.subscribe_to_topic(topic_name)
