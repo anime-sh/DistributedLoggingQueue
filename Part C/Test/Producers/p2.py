@@ -13,5 +13,8 @@ with open("test_asgn1/producer_2.txt", "r") as f:
         line=line.strip()
         topic = line.split('\t')[-1]
         message= '\t'.join(line.split('\t')[:-1])
-        p2.send(topic_name=topic, message=message)
+        while True:
+            response = p2.send(topic_name=topic, message=message)
+            if response is not None and response["status"] == "Success":
+                break
         time.sleep(random.uniform(0,1))
